@@ -10,8 +10,6 @@
 # Kristjian Caius Kasuk
 # Evar Valentin Pereseld
 #
-# mõningane eeskuju:
-#
 # Lisakommentaar:
 # Vaja on installida Pythoni moodulid tkinter, requests, bs4, pandas.
 ##################################################
