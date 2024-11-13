@@ -13,6 +13,7 @@
 # Lisakommentaar:
 # Vaja on installida Pythoni moodulid tkinter, requests, bs4, pandas.
 ##################################################
+
 import tkinter as tk
 from tkinter import messagebox
 import requests
