@@ -1,3 +1,20 @@
+################################################
+# Programmeerimine I
+# 2024/2025 sügissemester
+#
+# Projekt
+# Teema:
+# Ilmavaatlus hobi automatiseerimine
+#
+# Autorid:
+# Kristjian Caius Kasuk
+# Evar Valentin Pereseld
+#
+# mõningane eeskuju:
+#
+# Lisakommentaar:
+# Vaja on installida Pythoni moodulid tkinter, requests, bs4, pandas.
+##################################################
 import tkinter as tk
 from tkinter import messagebox
 import requests
