@@ -5,28 +5,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from bs4 import BeautifulSoup
-
-andmed = []
-url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
-
-# Geckodriveri tee määramine
-geckodriver_path = "C:/Program Files/geckodriver/geckodriver.exe"  # Asenda oma WebDriveri tee
-
-# Kasutaja sisend
-kuupäev = input("Sisesta kuupäev (formaadis pp.kk.aaaa): ")
-hommikune_aeg = input("Sisesta hommikune kellaaeg (ainult täistund, formaadis tt:00): ")
-ohtune_aeg = input("Sisesta õhtune kellaaeg (ainult täistund, formaadis tt:00): ")
-print('\n')
-
-# Käivitab Firefox WebDriver
-service = FirefoxService(executable_path=geckodriver_path)
-driver = webdriver.Firefox(service=service)
+from datetime import datetime
 
 # funktsioon andmete kogumiseks
-def andmete_kogumine(kellaaeg, kogutav):
+def andmete_kogumine(kellaaeg, kogutav, koht):
     """
     :parameeter kellaaeg: Kellaaeg, mida kasutada päringus (näiteks "7:00").
     :parameeter kogutav: Andmed, mida koguda ('hommik' või 'õhtu').
+    :parameeter koht: Asukoht, kus andmeid võtab.
     """
     try:
         # Avab veebilehe
@@ -68,7 +54,7 @@ def andmete_kogumine(kellaaeg, kogutav):
                     õhurõhk = andmete_rida[3].get_text(strip=True)
                     tuule_suund = andmete_rida[5].get_text(strip=True)
 
-                    if asukoht == "Võru":  # Filtreerib valitud asukoha andmed
+                    if asukoht == koht:  # Filtreerib valitud asukoha andmed
                         print(f"Asukoht: {asukoht}")
                         print(f"Temperatuur: {temperatuur if temperatuur else '-'}")
                         andmed.append(temperatuur if temperatuur else '-')
@@ -84,13 +70,60 @@ def andmete_kogumine(kellaaeg, kogutav):
     except Exception as e:
         print(f"Tekkis viga: {e}")
 
+# funktsioon nädalapäeva leidmiseks
+def nädalapäev(kuupäev): #formaadis pp.kk.aaaa
+    nädalapäevad = ['E', 'T', 'K', 'N', 'R', 'L', 'P']
+    
+    kuupäeva_obj = datetime.strptime(kuupäev, "%d.%m.%Y")
+    nädalapäeva_indeks = kuupäeva_obj.weekday()
+    return f"{kuupäeva_obj.day}.{nädalapäevad[nädalapäeva_indeks]}."
+
+# funktsioon mis teisendab hektopaskalid mmHg-ks
+def hPa_mmHg(paskalid):
+    mmHg = str(round(float(paskalid) * 0.750062)) + "mmHg"
+    return mmHg
+    
+
+# funktsioon mis muudab tuule suuna kraad ilmakaareks
+def tuule_suund(kraadid):
+    ilmakaared = ["Põhja", "Kirde", "Ida", "Kagu", "Lõuna", "Edela", "Lääne", "Loode", "Põhja"]
+    suuna_indeks = int((int(kraadid) + 22.5) % 360 // 45)
+    return ilmakaared[suuna_indeks]
+
+andmed = []
+url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
+
+# Geckodriveri tee määramine
+geckodriver_path = "C:/Program Files/geckodriver/geckodriver.exe"  # Asenda oma WebDriveri tee
+
+# Kasutaja sisend
+kuupäev = input("Sisesta kuupäev (formaadis pp.kk.aaaa): ")
+hommikune_aeg = input("Sisesta hommikune kellaaeg (ainult täistund, formaadis tt:00): ")
+ohtune_aeg = input("Sisesta õhtune kellaaeg (ainult täistund, formaadis tt:00): ")
+asukoht = input("Sisesta asukoht, kus andmeid kogub (asukoha nimi, suure algustähega): ") # Oleks vaja kuidaski kas manuaalselt luua järjendi, mis sisaldab kõik asukohad, või siis teha funktsioon, mis kogub kõik asukohad 
+print('\n')
+
+# Käivitab Firefox WebDriver
+service = FirefoxService(executable_path=geckodriver_path)
+driver = webdriver.Firefox(service=service)
+
 # Andmete kogumine hommikul (ainult temperatuur)
-andmete_kogumine(hommikune_aeg, "hommik")
+andmete_kogumine(hommikune_aeg, "hommik", asukoht)
 
 # Andmete kogumine õhtul (temperatuur, õhurõhk, tuule suund)
-andmete_kogumine(ohtune_aeg, "õhtu")
+andmete_kogumine(ohtune_aeg, "õhtu", asukoht)
 
 # Lõpeta WebDriver
 driver.quit()
+
+päev_nädalapäev = nädalapäev(kuupäev)
+andmed.insert(0, päev_nädalapäev)
+õhurõhk = andmed[3]
+õhurõhk = õhurõhk.replace(',','.')
+õhurõhk = hPa_mmHg(õhurõhk)
+andmed[3] = õhurõhk
+tuule_kraadid = andmed[4]
+ilmakaar = tuule_suund(tuule_kraadid)
+andmed[4] = ilmakaar
 
 print("Kogutud andmed:", andmed)
