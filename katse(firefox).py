@@ -79,8 +79,8 @@ def nädalapäev(kuupäev):
     return f"{kuupäeva_obj.day}.{nädalapäevad[nädalapäeva_indeks]}."
 
 # funktsioon, mis teisendab hektopaskalid mmHg-ks
-def hPa_mmHg(paskalid):
-    mmHg = str(round(float(paskalid) * 0.750062)) + "mmHg"
+def hPa_mmHg(hPa):
+    mmHg = str(round(float(hPa) * 0.750062)) + "mmHg"
     return mmHg
     
 
@@ -203,6 +203,11 @@ def lisa_excelisse(failinimi, andmed, kuupäev):
     except PermissionError:
         print("Viga, ei saanud salvestada faili, kontrolli ega sul exceli fail avatud ei ole")
 
+# Funktsioon, mis kustutab varasemad kogutud andmed, et programm saaks uuesti koguda andmeid, ilma restarti tegematta.
+def restart():
+    global andmed
+    andmed = []
+
 def käivita():
     global kuupäev, hommikune_aeg, õhtune_aeg, asukoht, andmed, driver
 
@@ -215,6 +220,8 @@ def käivita():
     if len(kuupäev) != 10 or not hommikune_aeg or not õhtune_aeg or not asukoht:
         print("Palun täida kõik väljad!")
         return
+    
+    restart()
     
     # Käivitab Firefox WebDriver
     service = FirefoxService(executable_path=geckodriver_path)
