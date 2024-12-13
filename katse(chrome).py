@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Side, Font
+from tkinter import Tk, Label, Entry, Button
 import os
 
 
@@ -18,30 +19,25 @@ def andmete_kogumine(kellaaeg, kogutav, koht):
     :parameeter kogutav: Andmed, mida koguda ('hommik' või 'õhtu').
     :parameeter koht: Asukoht, kus andmeid võtab.
     """
+    global driver
     try:
         # Avab veebilehe
         driver.get(url)
 
         # Kuupäeva sisestamine
-        date_input = WebDriverWait(driver, 20).until( # ootab 20s või kuni saab lisada kuupäeva
-            EC.presence_of_element_located((By.ID, "ood-datepicker"))
-        )
+        date_input = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "ood-datepicker")))  # ootab 20s või kuni saab lisada kuupäeva
         date_input.clear()
         date_input.send_keys(kuupäev)
         date_input.send_keys(Keys.RETURN)
         
         # Kellaaja sisestamine
-        time_input = WebDriverWait(driver, 20).until( # ootab 20s või kuni saab lisada kellaaja
-            EC.presence_of_element_located((By.ID, "ood-timepicker"))
-        )
+        time_input = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "ood-timepicker")))  # ootab 20s või kuni saab lisada kellaaja
         time_input.clear()
         time_input.send_keys(kellaaeg)
         time_input.send_keys(Keys.RETURN)
 
         # Ootab 20s või kuni leht lõpetab andmete laadimise
-        WebDriverWait(driver, 20).until(
-            lambda d: driver.execute_script("return jQuery.active == 0")
-        )
+        WebDriverWait(driver, 20).until(lambda d: driver.execute_script("return jQuery.active == 0"))
 
         # Parsib HTML-i BeautifulSoup abil
         html = driver.page_source
@@ -59,7 +55,8 @@ def andmete_kogumine(kellaaeg, kogutav, koht):
                     tuule_suund = andmete_rida[5].get_text(strip=True)
 
                     if asukoht == koht:  # Filtreerib valitud asukoha andmed
-                        print(f"Asukoht: {asukoht}")
+                        if kogutav == "hommik":
+                            print(f"Asukoht: {asukoht}")
                         print(f"Temperatuur: {temperatuur if temperatuur else '-'}")
                         andmed.append(temperatuur if temperatuur else '-')
 
@@ -70,7 +67,7 @@ def andmete_kogumine(kellaaeg, kogutav, koht):
                                 õhurõhk if õhurõhk else '-',
                                 tuule_suund if tuule_suund else '-'
                             ])
-                        print("-" * 40)
+                            print("-" * 40)
     except Exception as e:
         print(f"Tekkis viga: {e}")
 
@@ -207,47 +204,77 @@ def lisa_excelisse(failinimi, andmed, kuupäev):
     except PermissionError:
         print("Viga, ei saanud salvestada faili, kontrolli ega sul exceli fail avatud ei ole")
 
+def käivita():
+    global kuupäev, hommikune_aeg, õhtune_aeg, asukoht, andmed, driver
 
+    kuupäev = kuupäev_sisend.get()
+    hommikune_aeg = hommikune_aeg_sisend.get()
+    õhtune_aeg = õhtune_aeg_sisend.get()
+    asukoht = asukoht_sisend.get()
+
+    # Kontroll
+    if len(kuupäev) != 10 or not hommikune_aeg or not õhtune_aeg or not asukoht:
+        print("Palun täida kõik väljad!")
+        return
+    
+    # Käivitab Chrome WebDriver
+    service = ChromeService(executable_path=geckodriver_path)
+    driver = webdriver.Chrome(service=service)
+
+    try:
+        # Andmete kogumine hommikul (ainult temperatuur)
+        andmete_kogumine(hommikune_aeg, "hommik", asukoht)
+
+        # Andmete kogumine õhtul (temperatuur, õhurõhk, tuule suund)
+        andmete_kogumine(õhtune_aeg, "õhtu", asukoht)
+    finally:
+        driver.quit()
+
+    # Muudab andmed järjendi elemente, et vastaksid tahetud formaadile
+    päev_nädalapäev = nädalapäev(kuupäev)
+    andmed.insert(0, päev_nädalapäev)
+    õhurõhk = andmed[3]
+    õhurõhk = õhurõhk.replace(',','.')
+    õhurõhk = hPa_mmHg(õhurõhk)
+    andmed[3] = õhurõhk
+    tuule_kraadid = andmed[4]
+    ilmakaar = tuule_suund(tuule_kraadid)
+    andmed[4] = ilmakaar
+
+    print("Kogutud andmed:", andmed)
+
+    failinimi = "ilm.xlsx"
+    lisa_excelisse(failinimi, andmed, kuupäev)
+
+    print(f"Andmed salvestatud faili {failinimi}.")
+    
 andmed = []
 url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
 
-# chromedriveri tee määramine
-chrome_driver_path = "C:/Program Files/chromedriver-win64/chromedriver.exe"  # Asenda oma WebDriveri tee
+# Geckodriveri tee määramine
+geckodriver_path = "C:/Program Files/geckodriver/geckodriver.exe"  # Asenda oma WebDriveri tee
 
-# Kasutaja sisend
-kuupäev = input("Sisesta kuupäev (formaadis pp.kk.aaaa): ")
-hommikune_aeg = input("Sisesta hommikune kellaaeg (ainult täistund, formaadis tt:00): ")
-ohtune_aeg = input("Sisesta õhtune kellaaeg (ainult täistund, formaadis tt:00): ")
-asukoht = input("Sisesta asukoht, kus andmeid kogub (asukoha nimi, suure algustähega): ") # Oleks vaja kuidaski kas manuaalselt luua järjendi, mis sisaldab kõik asukohad, või siis teha funktsioon, mis kogub kõik asukohad ja laseb kasutajal valida asukohta
-print('\n')
+root = Tk()
+root.title("Ilmavaatlus")
+root.geometry("400x300")
 
-# Käivitab Chrome WebDriver
-service = ChromeService(executable_path=chrome_driver_path)
-driver = webdriver.Chrome(service=service)
+Label(root, text="Sisesta kuupäev (pp.kk.aaaa):").pack(pady=5)
+kuupäev_sisend = Entry(root, width=30)
+kuupäev_sisend.pack(pady=5)
 
-# Andmete kogumine hommikul (ainult temperatuur)
-andmete_kogumine(hommikune_aeg, "hommik", asukoht)
+Label(root, text="Sisesta hommikune kellaaeg (tt:00):").pack(pady=5)
+hommikune_aeg_sisend = Entry(root, width=30)
+hommikune_aeg_sisend.pack(pady=5)
 
-# Andmete kogumine õhtul (temperatuur, õhurõhk, tuule suund)
-andmete_kogumine(ohtune_aeg, "õhtu", asukoht)
+Label(root, text="Sisesta õhtune kellaaeg (tt:00):").pack(pady=5)
+õhtune_aeg_sisend = Entry(root, width=30)
+õhtune_aeg_sisend.pack(pady=5)
 
-# sulgeb WebDriveri
-driver.quit()
+Label(root, text="Sisesta asukoht:").pack(pady=5)
+asukoht_sisend = Entry(root, width=30)
+asukoht_sisend.pack(pady=5)
 
-# Muudab andmed järjendi elemente, et vastaksid tahetud formaadile
-päev_nädalapäev = nädalapäev(kuupäev)
-andmed.insert(0, päev_nädalapäev)
-õhurõhk = andmed[3]
-õhurõhk = õhurõhk.replace(',','.')
-õhurõhk = hPa_mmHg(õhurõhk)
-andmed[3] = õhurõhk
-tuule_kraadid = andmed[4]
-ilmakaar = tuule_suund(tuule_kraadid)
-andmed[4] = ilmakaar
+# Nupp protsessi käivitamiseks
+Button(root, text="Käivita", command=käivita).pack(pady=20)
 
-print("Kogutud andmed:", andmed)
-
-failinimi = "ilm.xlsx"
-lisa_excelisse(failinimi, andmed, kuupäev)
-
-print(f"Andmed salvestatud faili {failinimi}.")
+root.mainloop()
