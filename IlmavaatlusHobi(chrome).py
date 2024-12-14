@@ -243,7 +243,7 @@ def käivita():
     restart()
 
     # Käivitab Chrome WebDriver
-    service = ChromeService(executable_path=geckodriver_path)
+    service = ChromeService(executable_path=chromedriver_path)
     driver = webdriver.Chrome(service=service)
 
     try:
@@ -276,8 +276,8 @@ def käivita():
 andmed = []
 url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
 
-# Geckodriveri tee määramine
-geckodriver_path = "C:/Program Files/geckodriver/geckodriver.exe"  # Asenda oma WebDriveri tee
+# Chromedriveri tee määramine
+chromedriver_path = "C:/Program Files/chromedriver-win64/chromedriver.exe"  # Asenda oma WebDriveri tee
 
 root = Tk()
 root.title("Ilmavaatlus")

@@ -6,3 +6,6 @@ Olen proovinud arendada vabal ajal koodi juppi, mis asendaks IlmavaatlusHobi.py 
 Oleks vaja veel luua kasutajaliides (mille jaoks oleks vaja luua backup funktsioon; mõelda viisi, kuidas lasta kasutajal valida mis asukohast ta andmeid tahab (valikuid on ~91, millest enamus ei sisalda rohkem kui temperatuuri, programmi otstarbete jaoks); äkki lasta kasutajal valida mis kellade ajal ta tahab võtta andmeid (näiteks oleks kellaaegade valik (nagunii ilmateenistus ainult annab valikuks näha andmeid täistunni järgi) ja siis kasutaja valib), sellisel juhul, ei saa kasutaja valesti midagi sisestada). 
 
 See programm praegu nagu täidaks kõike neid eesmärke, mis sai projekti kirjelduses antud. Olekski siis ainult jäänud need funktsioonid, mis eelmises lõigus mainisin ja mis said lisatud, sinna alfa versiooni kirjeldusse. Ma tegelen edasi sellega, kui aega on, kuid kiireks läheb, kuna alla nädala on jäänud esitamiseni.
+
+## 14.12.2024 -Evar
+Nüüd on olemas asukohtade .txt fail, jätsin koodi alles, äkki kasutab veel seda, kuid mu meelest pole mõtet seda lisada koodi. Muutsin katse.py programmide nimed ära ja lisasin neile päise. Avastasin, et kui ma tegin firefoxi versioonis muutatusi eelmine kord, siis kogematta sisestasin chrome versiooni geckodriver_path koodi, parandasin nüüd selle ära, et kõik jälle töötab.
