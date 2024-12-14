@@ -1,3 +1,21 @@
+################################################
+# Programmeerimine I
+# 2024/2025 sügissemester
+#
+# Projekt
+# Teema:
+# Ilmavaatlus hobi automatiseerimine
+#
+# Autorid:
+# Kristjian Caius Kasuk
+# Evar Valentin Pereseld
+#
+# Lisakommentaar:
+# Vaja on installida Pythoni moodulid tkinter, bs4, selenium, openpyxl.
+# Oleks vaja ka tõmmata alla geckodriver(https://github.com/mozilla/geckodriver/releases) ja lisada koodi reale 278, selle .exe asukoht arvutis.
+# Ilma andmete allikas on Keskkonnaagentuur(https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/)
+##################################################
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
