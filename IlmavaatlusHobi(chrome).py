@@ -26,8 +26,12 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Side, Font
-from tkinter import Tk, Label, Entry, Button
+from tkinter import Tk, Label, Entry, Button, Toplevel, filedialog, ttk, messagebox, PhotoImage
 import os
+import shutil
+from tkcalendar import Calendar
+from tkinter import *
+
 
 
 # funktsioon andmete kogumiseks
@@ -155,6 +159,9 @@ def lisa_excelisse(failinimi, andmed, kuupäev):
         kuu_rida = ["", "", kuu]
         aasta_rida = ["", "", aasta]
 
+        # Failinimi ja -koht, kus faili hallata
+        failinimi = os.path.join(faili_asukoht, "ilm.xlsx")
+
         #Juhul, kui ei ole sellist faili, loob selle
         if not os.path.exists(failinimi):
             fail = Workbook()
@@ -272,34 +279,98 @@ def käivita():
     lisa_excelisse(failinimi, andmed, kuupäev)
 
     print(f"Andmed salvestatud faili {failinimi}.")
-    
+
+
 andmed = []
 url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
 
 # Chromedriveri tee määramine
 chromedriver_path = "C:/Program Files/chromedriver-win64/chromedriver.exe"  # Asenda oma WebDriveri tee
 
+
+
+# Algse asukoha määramine
+faili_asukoht = os.getcwd()
+
+# Funktsioon kuupäeva valimiseks
+def vali_kuupäev():
+    def valitud_kuupäev():
+        kuupäev_sisend.delete(0, 'end')
+        kuupäev_sisend.insert(0, cal.get_date())
+        calendar_window.destroy()
+
+    calendar_window = Toplevel(root)
+    calendar_window.title("Vali kuupäev")
+    cal = Calendar(calendar_window, selectmode='day', date_pattern='dd.mm.yyyy')
+    cal.pack(pady=20)
+
+    Button(calendar_window, text="Vali", command=valitud_kuupäev).pack(pady=10)
+
+# Funktsioon asukohtade laadimiseks failist
+def laadi_asukohad(failinimi):
+    try:
+        with open(failinimi, 'r', encoding='utf-8') as file:
+            asukohad = eval(file.read())
+            return asukohad
+    except Exception as e:
+        print(f"Tekkis viga asukohtade laadimisel: {e}")
+        return []
+
+# Funktsioon Exceli faili varukoopia tegemiseks
+def tee_varukoopia():
+    varukoopia_nimi = f"backup_{os.path.basename(failinimi)}"
+    try:
+        shutil.copy(failinimi, os.path.normpath(os.path.join(faili_asukoht, varukoopia_nimi)))
+        print(f"Varukoopia loodud: {os.path.normpath(os.path.join(faili_asukoht, varukoopia_nimi))}")
+    except Exception as e:
+        print(f"Tekkis viga varukoopia tegemisel: {e}")
+
+# Funktsioon faili salvestuskoha valimiseks
+def vali_salvestuskoht():
+    global faili_asukoht
+    salvestuskoht = filedialog.askdirectory()
+    if salvestuskoht:
+        faili_asukoht = salvestuskoht
+    else:
+        faili_asukoht = os.getcwd()
+    uuenda_failinimi()
+    print(f"Faili asukoht on nüüd: {os.path.normpath(faili_asukoht)}")
+
+# Uuenda failinimi vastavalt salvestuskohale
+def uuenda_failinimi():
+    global failinimi
+    failinimi = os.path.normpath(os.path.join(faili_asukoht, "ilm.xlsx"))
+    print(f"Fail salvestatakse asukohta: {failinimi}")
+
 root = Tk()
 root.title("Ilmavaatlus")
-root.geometry("400x300")
+root.geometry("500x250")
 
-Label(root, text="Sisesta kuupäev (pp.kk.aaaa):").pack(pady=5)
-kuupäev_sisend = Entry(root, width=30)
-kuupäev_sisend.pack(pady=5)
+Label(root, text="Sisesta kuupäev (pp.kk.aaaa):").grid(row=0, column=0, padx=10, pady=5)
+kuupäev_sisend = Entry(root, width=15)
+kuupäev_sisend.grid(row=0, column=1, padx=10, pady=5)
+Button(root, text="Vali kuupäev", command=vali_kuupäev).grid(row=0, column=2, padx=10, pady=5)
 
-Label(root, text="Sisesta hommikune kellaaeg (tt:00):").pack(pady=5)
-hommikune_aeg_sisend = Entry(root, width=30)
-hommikune_aeg_sisend.pack(pady=5)
+Label(root, text="Sisesta hommikune kellaaeg (tt:00):").grid(row=1, column=0, padx=10, pady=5)
+hommikune_aeg_sisend = Entry(root, width=15)
+hommikune_aeg_sisend.grid(row=1, column=1, padx=10, pady=5)
 
-Label(root, text="Sisesta õhtune kellaaeg (tt:00):").pack(pady=5)
-õhtune_aeg_sisend = Entry(root, width=30)
-õhtune_aeg_sisend.pack(pady=5)
+Label(root, text="Sisesta õhtune kellaaeg (tt:00):").grid(row=2, column=0, padx=10, pady=5)
+õhtune_aeg_sisend = Entry(root, width=15)
+õhtune_aeg_sisend.grid(row=2, column=1, padx=10, pady=5)
 
-Label(root, text="Sisesta asukoht:").pack(pady=5)
-asukoht_sisend = Entry(root, width=30)
-asukoht_sisend.pack(pady=5)
+Label(root, text="Vali asukoht:").grid(row=3, column=0, padx=10, pady=5)
+asukohad_failinimi = "asukohad.txt"
+asukohad = laadi_asukohad(asukohad_failinimi)
+asukoht_sisend = ttk.Combobox(root, values=asukohad, state='readonly')
+asukoht_sisend.grid(row=3, column=1, padx=10, pady=5)
 
-# Nupp protsessi käivitamiseks
-Button(root, text="Käivita", command=käivita).pack(pady=20)
+Button(root, text="Tee varukoopia", command=tee_varukoopia).grid(row=4, column=0, padx=10, pady=5)
+Button(root, text="Vali salvestuskoht", command=vali_salvestuskoht).grid(row=4, column=1, padx=10, pady=5)
+
+Button(root, text="Käivita", command=käivita).grid(row=5, column=0, columnspan=2, padx=10, pady=20)
+
+# Uuenda failinimi kohe alguses, et määrata vaikesalvestuskoht
+uuenda_failinimi()
 
 root.mainloop()
