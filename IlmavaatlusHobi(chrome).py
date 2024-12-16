@@ -11,8 +11,8 @@
 # Evar Valentin Pereseld
 #
 # Lisakommentaar:
-# Vaja on installida Pythoni moodulid tkinter, bs4, selenium, openpyxl.
-# Oleks vaja ka tõmmata alla Chroomedriver(https://googlechromelabs.github.io/chrome-for-testing/) ja lisada koodi reale 280, selle .exe asukoht arvutis.
+# Vaja on installida Pythoni moodulid tkinter, tkcalendar, bs4, selenium, openpyxl.
+# Oleks vaja ka tõmmata alla Chroomedriver(https://googlechromelabs.github.io/chrome-for-testing/) ja lisada koodi reale 343, selle .exe asukoht arvutis.
 # Ilma andmete allikas on Keskkonnaagentuur(https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/)
 ##################################################
 
@@ -103,15 +103,21 @@ def nädalapäev(kuupäev):
 
 # funktsioon, mis teisendab hektopaskalid mmHg-ks
 def hPa_mmHg(hPa):
-    mmHg = str(round(float(hPa) * 0.750062)) + "mmHg"
-    return mmHg
+    if hPa == '-':
+        return hPa
+    else:
+        mmHg = str(round(float(hPa) * 0.750062)) + "mmHg"
+        return mmHg
     
 
 # funktsioon, mis muudab tuule suuna kraad ilmakaareks
 def tuule_suund(kraadid):
     ilmakaared = ["Põhja", "Kirde", "Ida", "Kagu", "Lõuna", "Edela", "Lääne", "Loode", "Põhja"]
-    suuna_indeks = int((int(kraadid) + 22.5) % 360 // 45)
-    return ilmakaared[suuna_indeks]
+    if kraadid == '-':
+        return kraadid
+    else:
+        suuna_indeks = int((int(kraadid) + 22.5) % 360 // 45)
+        return ilmakaared[suuna_indeks]
 
 # Funktsioon, mis kontrollib kas on uus aasta
 def uus_aasta(kuupäev):
@@ -280,18 +286,6 @@ def käivita():
 
     print(f"Andmed salvestatud faili {failinimi}.")
 
-
-andmed = []
-url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
-
-# Chromedriveri tee määramine
-chromedriver_path = "C:/Program Files/chromedriver-win64/chromedriver.exe"  # Asenda oma WebDriveri tee
-
-
-
-# Algse asukoha määramine
-faili_asukoht = os.getcwd()
-
 # Funktsioon kuupäeva valimiseks
 def vali_kuupäev():
     def valitud_kuupäev():
@@ -341,6 +335,15 @@ def uuenda_failinimi():
     global failinimi
     failinimi = os.path.normpath(os.path.join(faili_asukoht, "ilm.xlsx"))
     print(f"Fail salvestatakse asukohta: {failinimi}")
+
+andmed = []
+url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
+
+# Chromedriveri tee määramine
+chromedriver_path = "C:/Program Files/chromedriver-win64/chromedriver.exe"  # Asenda oma WebDriveri tee
+
+# Algse asukoha määramine
+faili_asukoht = os.getcwd()
 
 root = Tk()
 root.title("Ilmavaatlus")
