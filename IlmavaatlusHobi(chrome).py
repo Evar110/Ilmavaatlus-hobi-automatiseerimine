@@ -12,7 +12,7 @@
 #
 # Lisakommentaar:
 # Vaja on installida Pythoni moodulid tkinter, tkcalendar, bs4, selenium, openpyxl.
-# Oleks vaja ka tõmmata alla Chroomedriver(https://googlechromelabs.github.io/chrome-for-testing/) ja lisada koodi reale 343, selle .exe asukoht arvutis.
+# Oleks vaja ka tõmmata alla Chroomedriver(https://googlechromelabs.github.io/chrome-for-testing/) ja lisada koodi reale 349, selle .exe asukoht arvutis.
 # Ilma andmete allikas on Keskkonnaagentuur(https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/)
 ##################################################
 
@@ -300,15 +300,21 @@ def vali_kuupäev():
 
     Button(calendar_window, text="Vali", command=valitud_kuupäev).pack(pady=10)
 
-# Funktsioon asukohtade laadimiseks failist
-def laadi_asukohad(failinimi):
-    try:
-        with open(failinimi, 'r', encoding='utf-8') as file:
-            asukohad = eval(file.read())
-            return asukohad
-    except Exception as e:
-        print(f"Tekkis viga asukohtade laadimisel: {e}")
-        return []
+# Asukohad
+asukohad = [
+    "Ahja", "Audru", "Dirhami", "Haapsalu", "Haapsalu sadam", "Heltermaa", "Häädemeeste",
+    "Hüüru", "Jõgeva", "Jõhvi", "Kaansoo", "Kasari", "Kassari", "Kehra", "Keila", "Kihnu",
+    "Kloostrimetsa", "Koodu", "Korela", "Kulgu sadam", "Kunda", "Kuningaküla", "Kuressaare linn",
+    "Kuusiku", "Kõrgessaare", "Laadi", "Laimjala", "Loksa", "Luguse", "Lüganuse", "Lääne-Nigula",
+    "Mehikoorma", "Mustvee", "Mõntu", "Männikjärve raba", "Naissaare", "Narva", "Narva Karjääri",
+    "Narva linn", "Nurme", "Oore", "Osmussaare", "Otepää", "Pajupea", "Pajusi", "Paldiski (Põhjasadam)",
+    "Pakri", "Piigaste", "Pirita", "Praaga", "Pärnu", "Rannu-Jõesuu", "Reola", "Riisa", "Ristna",
+    "Rohuneeme", "Roomassaare", "Roosisaare", "Roostoja", "Ruhnu", "Sõrve", "Sämi", "Särevere",
+    "Tallinn-Harku", "Tartu", "Tartu-Tõravere", "Taheva", "Tahkuse", "Tiirikoja", "Toila-Oru", "Tooma",
+    "Tudu", "Tuulemäe", "Türi", "Tõlliste", "Tõrva", "Tõrve", "Uue-Lõve", "Vaindloo", "Valga",
+    "Valgu", "Vanaküla", "Varangu", "Vasknarva", "Vihterpalu", "Viljandi", "Vilsandi", "Virtsu",
+    "Võru", "Väike-Maarja"
+]
 
 # Funktsioon Exceli faili varukoopia tegemiseks
 def tee_varukoopia():
@@ -362,11 +368,11 @@ Label(root, text="Sisesta õhtune kellaaeg (tt:00):").grid(row=2, column=0, padx
 õhtune_aeg_sisend = Entry(root, width=15)
 õhtune_aeg_sisend.grid(row=2, column=1, padx=10, pady=5)
 
+
 Label(root, text="Vali asukoht:").grid(row=3, column=0, padx=10, pady=5)
-asukohad_failinimi = "asukohad.txt"
-asukohad = laadi_asukohad(asukohad_failinimi)
 asukoht_sisend = ttk.Combobox(root, values=asukohad, state='readonly')
 asukoht_sisend.grid(row=3, column=1, padx=10, pady=5)
+
 
 Button(root, text="Tee varukoopia", command=tee_varukoopia).grid(row=4, column=0, padx=10, pady=5)
 Button(root, text="Vali salvestuskoht", command=vali_salvestuskoht).grid(row=4, column=1, padx=10, pady=5)
