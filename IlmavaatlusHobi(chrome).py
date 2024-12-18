@@ -13,6 +13,7 @@
 # Lisakommentaar:
 # Vaja on installida Pythoni moodulid tkinter, tkcalendar, bs4, selenium, openpyxl.
 # Oleks vaja ka tõmmata alla Chroomedriver(https://googlechromelabs.github.io/chrome-for-testing/) ja lisada koodi reale 349, selle .exe asukoht arvutis.
+# See programm saab ainult kirjutada .xlsx faili andmed.
 # Ilma andmete allikas on Keskkonnaagentuur(https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/)
 ##################################################
 
@@ -37,11 +38,14 @@ from tkinter import *
 # funktsioon andmete kogumiseks
 def andmete_kogumine(kellaaeg, kogutav, koht):
     """
+    Kogub andmed url-ist (ilmavaatlus lehelt) ja tagastab need.
     :parameeter kellaaeg: Kellaaeg, mida kasutada päringus (näiteks "7:00").
     :parameeter kogutav: Andmed, mida koguda ('hommik' või 'õhtu').
     :parameeter koht: Asukoht, kus andmeid võtab.
     """
+
     global driver
+
     try:
         # Avab veebilehe
         driver.get(url)
@@ -113,6 +117,7 @@ def hPa_mmHg(hPa):
 # funktsioon, mis muudab tuule suuna kraad ilmakaareks
 def tuule_suund(kraadid):
     ilmakaared = ["Põhja", "Kirde", "Ida", "Kagu", "Lõuna", "Edela", "Lääne", "Loode", "Põhja"]
+
     if kraadid == '-':
         return kraadid
     else:
@@ -137,6 +142,7 @@ def uus_kuu(kuupäev):
 def kuu_ja_aasta(kuupäev):
     järjend = []
     kuud = ['Jaanuar', 'Veebruar', 'Märts', 'Aprill', 'Mai', 'Juuni', 'Juuli', 'August', 'September', 'Oktoober', 'November', 'Detsember']
+
     kuu = kuud[int(kuupäev[3:5]) - 1]
     järjend.append(kuu)
     aasta = int(kuupäev[6:])
@@ -149,6 +155,7 @@ def lisa_excelisse(failinimi, andmed, kuupäev):
     Lisab andmed Exceli faili uuele reale, kui faili ei ole, loob selle.
     Lisaks määrab joondamise, stiili ja muud visuaalsed elemendid.
     """
+
     try:
         # Kuu ja aasta
         kuu_ja_aasta_järjend = kuu_ja_aasta(kuupäev)
@@ -231,7 +238,7 @@ def lisa_excelisse(failinimi, andmed, kuupäev):
             # Salvestab andmed
             fail.save(failinimi)
 
-    # Juhul, kui kasutaja jätab exceli faili lahti, kui programmi käivitab
+    # Juhul, kui kasutaja jätab exceli faili lahti, kui programmi proovib kirjutada exceli faili.
     except PermissionError:
         print("Viga, ei saanud salvestada faili, kontrolli ega sul exceli fail avatud ei ole")
 
@@ -248,14 +255,14 @@ def käivita():
     õhtune_aeg = õhtune_aeg_sisend.get()
     asukoht = asukoht_sisend.get()
 
-    # Kontroll
+    # Kontroll, et andmed oleks sisetatud.
     if len(kuupäev) != 10 or not hommikune_aeg or not õhtune_aeg or not asukoht:
         print("Palun täida kõik väljad!")
         return
     
     restart()
 
-    # Käivitab Chrome WebDriver
+    # Käivitab Chrome WebDriveri
     service = ChromeService(executable_path=chromedriver_path)
     driver = webdriver.Chrome(service=service)
 
@@ -300,22 +307,6 @@ def vali_kuupäev():
 
     Button(calendar_window, text="Vali", command=valitud_kuupäev).pack(pady=10)
 
-# Asukohad
-asukohad = [
-    "Ahja", "Audru", "Dirhami", "Haapsalu", "Haapsalu sadam", "Heltermaa", "Häädemeeste",
-    "Hüüru", "Jõgeva", "Jõhvi", "Kaansoo", "Kasari", "Kassari", "Kehra", "Keila", "Kihnu",
-    "Kloostrimetsa", "Koodu", "Korela", "Kulgu sadam", "Kunda", "Kuningaküla", "Kuressaare linn",
-    "Kuusiku", "Kõrgessaare", "Laadi", "Laimjala", "Loksa", "Luguse", "Lüganuse", "Lääne-Nigula",
-    "Mehikoorma", "Mustvee", "Mõntu", "Männikjärve raba", "Naissaare", "Narva", "Narva Karjääri",
-    "Narva linn", "Nurme", "Oore", "Osmussaare", "Otepää", "Pajupea", "Pajusi", "Paldiski (Põhjasadam)",
-    "Pakri", "Piigaste", "Pirita", "Praaga", "Pärnu", "Rannu-Jõesuu", "Reola", "Riisa", "Ristna",
-    "Rohuneeme", "Roomassaare", "Roosisaare", "Roostoja", "Ruhnu", "Sõrve", "Sämi", "Särevere",
-    "Tallinn-Harku", "Tartu", "Tartu-Tõravere", "Taheva", "Tahkuse", "Tiirikoja", "Toila-Oru", "Tooma",
-    "Tudu", "Tuulemäe", "Türi", "Tõlliste", "Tõrva", "Tõrve", "Uue-Lõve", "Vaindloo", "Valga",
-    "Valgu", "Vanaküla", "Varangu", "Vasknarva", "Vihterpalu", "Viljandi", "Vilsandi", "Virtsu",
-    "Võru", "Väike-Maarja"
-]
-
 # Funktsioon Exceli faili varukoopia tegemiseks
 def tee_varukoopia():
     varukoopia_nimi = f"backup_{os.path.basename(failinimi)}"
@@ -346,10 +337,26 @@ andmed = []
 url = "https://www.ilmateenistus.ee/ilm/ilmavaatlused/vaatlusandmed/tunniandmed/"
 
 # Chromedriveri tee määramine
-chromedriver_path = "C:/Program Files/chromedriver-win64/chromedriver.exe"  # Asenda oma WebDriveri tee
+chromedriver_path = "C:/Program Files/chromedriver-win64/chromedriver.exe"  # Asenda oma WebDriveri teega
 
 # Algse asukoha määramine
 faili_asukoht = os.getcwd()
+
+# Asukohad
+asukohad = [
+    "Ahja", "Audru", "Dirhami", "Haapsalu", "Haapsalu sadam", "Heltermaa", "Häädemeeste",
+    "Hüüru", "Jõgeva", "Jõhvi", "Kaansoo", "Kasari", "Kassari", "Kehra", "Keila", "Kihnu",
+    "Kloostrimetsa", "Koodu", "Korela", "Kulgu sadam", "Kunda", "Kuningaküla", "Kuressaare linn",
+    "Kuusiku", "Kõrgessaare", "Laadi", "Laimjala", "Loksa", "Luguse", "Lüganuse", "Lääne-Nigula",
+    "Mehikoorma", "Mustvee", "Mõntu", "Männikjärve raba", "Naissaare", "Narva", "Narva Karjääri",
+    "Narva linn", "Nurme", "Oore", "Osmussaare", "Otepää", "Pajupea", "Pajusi", "Paldiski (Põhjasadam)",
+    "Pakri", "Piigaste", "Pirita", "Praaga", "Pärnu", "Rannu-Jõesuu", "Reola", "Riisa", "Ristna",
+    "Rohuneeme", "Roomassaare", "Roosisaare", "Roostoja", "Ruhnu", "Sõrve", "Sämi", "Särevere",
+    "Tallinn-Harku", "Tartu", "Tartu-Tõravere", "Taheva", "Tahkuse", "Tiirikoja", "Toila-Oru", "Tooma",
+    "Tudu", "Tuulemäe", "Türi", "Tõlliste", "Tõrva", "Tõrve", "Uue-Lõve", "Vaindloo", "Valga",
+    "Valgu", "Vanaküla", "Varangu", "Vasknarva", "Vihterpalu", "Viljandi", "Vilsandi", "Virtsu",
+    "Võru", "Väike-Maarja"
+]
 
 root = Tk()
 root.title("Ilmavaatlus")
@@ -382,4 +389,5 @@ Button(root, text="Käivita", command=käivita).grid(row=5, column=0, columnspan
 # Uuenda failinimi kohe alguses, et määrata vaikesalvestuskoht
 uuenda_failinimi()
 
+# Laseb kirjutada andmed faili, nii kaua kui kasutaja tahab
 root.mainloop()
